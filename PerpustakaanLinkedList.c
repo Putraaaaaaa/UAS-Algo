@@ -33,8 +33,24 @@ struct queue
     int size;
 };
 
-
 //==== Linear =============================
+
+// Function prototypes for BST
+struct bstNode* createNode(struct buku data);
+struct bstNode* searchBST(struct bstNode* root, int idBuku);
+struct bstNode* insertBST(struct bstNode* root, struct buku data);
+struct bstNode* minValueNode(struct bstNode* node);
+struct bstNode* deleteBST(struct bstNode* root, int idBuku);
+void inorderBST(struct bstNode* root);
+void freeBST(struct bstNode* root);
+struct bstNode* bacaBukuBST();
+int countNodes(struct bstNode* root);
+void storeInorder(struct bstNode* root, struct bstNode** arr, int* index);
+void lihatBukuUrutan(struct bstNode** nodes, int count, int sortType);
+void lihatSemuaBukuBST(struct bstNode* root);
+int compareJudulAZ(const void* a, const void* b);
+int compareJudulZA(const void* a, const void* b);
+
 FILE *openFile(const char *filename, const char *mode)
 {
     FILE *file = fopen(filename, mode);
@@ -1087,41 +1103,200 @@ struct bstNode* deleteBST(struct bstNode* root, int idBuku) {
     return root;
 }
 
-// Fungsi untuk menampilkan BST secara inorder
-void inorderBST(struct bstNode* root) {
-    if (root != NULL) {
-        inorderBST(root->left);
-        tampilPerBuku(&root->data);
-        inorderBST(root->right);
+// Fungsi untuk menghitung jumlah node dalam BST
+int countNodes(struct bstNode* root) {
+    if (root == NULL) return 0;
+    return 1 + countNodes(root->left) + countNodes(root->right);
+}
+
+// Fungsi untuk menyimpan node BST ke array secara inorder
+void storeInorder(struct bstNode* root, struct bstNode** arr, int* index) {
+    if (root == NULL) return;
+    
+    storeInorder(root->left, arr, index);
+    arr[*index] = root;
+    (*index)++;
+    storeInorder(root->right, arr, index);
+}
+
+// Fungsi untuk membandingkan judul buku (A-Z)
+int compareJudulAZ(const void* a, const void* b) {
+    struct bstNode* nodeA = *(struct bstNode**)a;
+    struct bstNode* nodeB = *(struct bstNode**)b;
+    return strcmp(nodeA->data.judul, nodeB->data.judul);
+}
+
+// Fungsi untuk membandingkan judul buku (Z-A)
+int compareJudulZA(const void* a, const void* b) {
+    struct bstNode* nodeA = *(struct bstNode**)a;
+    struct bstNode* nodeB = *(struct bstNode**)b;
+    return strcmp(nodeB->data.judul, nodeA->data.judul);
+}
+
+void lihatBukuUrutan(struct bstNode** nodes, int count, int sortType) {
+    // Urutkan array jika diperlukan
+    if (sortType == 1) { // A-Z
+        qsort(nodes, count, sizeof(struct bstNode*), compareJudulAZ);
+    } else if (sortType == 2) { // Z-A
+        qsort(nodes, count, sizeof(struct bstNode*), compareJudulZA);
+    }
+    
+    int currentIndex = 0;
+    char pilihan;
+
+    while (1) {
+        tampilPerBuku(&(nodes[currentIndex]->data));
+
+        printf("Pilih aksi: (n) Buku Selanjutnya | (p) Buku Sebelumnya | (q) Kembali\n");
+        printf("Pilihan: ");
+        scanf(" %c", &pilihan);
+
+        switch (pilihan) {
+            case 'n':
+                if (currentIndex < count - 1) {
+                    currentIndex++;
+                } else {
+                    currentIndex = 0;
+                }
+                break;
+            case 'p':
+                if (currentIndex > 0) {
+                    currentIndex--;
+                } else {
+                    currentIndex = count - 1;
+                }
+                break;
+            case 'q':
+                return;
+            default:
+                printf("Pilihan tidak valid!\n");
+        }
     }
 }
 
-// Fungsi untuk membebaskan memori BST
-void freeBST(struct bstNode* root) {
-    if (root != NULL) {
-        freeBST(root->left);
-        freeBST(root->right);
-        free(root);
+void lihatSemuaBukuBST(struct bstNode* root) {
+    if (root == NULL) {
+        printf("Tidak ada data buku.\n");
+        return;
+    }
+
+    int count = countNodes(root);
+    struct bstNode** nodes = (struct bstNode**)malloc(count * sizeof(struct bstNode*));
+    int index = 0;
+    storeInorder(root, nodes, &index);
+
+    int pilihan;
+    while (1) {
+        printf("\n=== PILIHAN URUTAN TAMPILAN ===\n");
+        printf("1. Berurutan berdasarkan ID\n");
+        printf("2. Berurutan berdasarkan Alfabet\n");
+        printf("0. Kembali\n");
+        printf("Pilihan: ");
+        scanf("%d", &pilihan);
+
+        switch (pilihan) {
+            case 1:
+                lihatBukuUrutan(nodes, count, 0); // Urutan normal (sesuai BST)
+                break;
+            case 2: {
+                int subPilihan;
+                printf("\n=== PILIHAN URUTAN ALFABET ===\n");
+                printf("1. A-Z\n");
+                printf("2. Z-A\n");
+                printf("0. Kembali\n");
+                printf("Pilihan: ");
+                scanf("%d", &subPilihan);
+
+                switch (subPilihan) {
+                    case 1:
+                        lihatBukuUrutan(nodes, count, 1); // A-Z
+                        break;
+                    case 2:
+                        lihatBukuUrutan(nodes, count, 2); // Z-A
+                        break;
+                    case 0:
+                        break;
+                    default:
+                        printf("Pilihan tidak valid!\n");
+                }
+                break;
+            }
+            case 0:
+                free(nodes);
+                return;
+            default:
+                printf("Pilihan tidak valid!\n");
+        }
     }
 }
 
-// Fungsi untuk membaca data buku ke BST
-struct bstNode* bacaBukuBST() {
-    FILE *file = openFile("databuku.txt", "r");
-    if (file == NULL)
-        return NULL;
-
-    struct bstNode* root = NULL;
-    struct buku tempBuku;
-
-    while (fscanf(file, "%d#%99[^#]#%99[^#]#%9[^#]#%d\n",
-                  &tempBuku.idBuku, tempBuku.judul, tempBuku.pengarang,
-                  tempBuku.tahun, &tempBuku.status) == 5) {
-        root = insertBST(root, tempBuku);
+void cariBukuBST(struct bstNode* root) {
+    int idCari;
+    printf("Masukkan ID Buku yang dicari: ");
+    scanf("%d", &idCari);
+    while (getchar() != '\n');
+    
+    struct bstNode* hasil = searchBST(root, idCari);
+    if (hasil != NULL) {
+        printf("\n=== BUKU DITEMUKAN ===\n");
+        tampilPerBuku(&hasil->data);
+    } else {
+        printf("Buku dengan ID %d tidak ditemukan.\n", idCari);
     }
+}
 
-    fclose(file);
+struct bstNode* tambahBukuBST(struct bstNode* root) {
+    struct buku bukuBaru;
+    printf("\n=== TAMBAH BUKU ===\n");
+    printf("Masukkan ID Buku: ");
+    scanf("%d", &bukuBaru.idBuku);
+    while (getchar() != '\n');
+    
+    printf("Masukkan Judul: ");
+    fgets(bukuBaru.judul, sizeof(bukuBaru.judul), stdin);
+    bukuBaru.judul[strcspn(bukuBaru.judul, "\n")] = 0;
+    
+    printf("Masukkan Pengarang: ");
+    fgets(bukuBaru.pengarang, sizeof(bukuBaru.pengarang), stdin);
+    bukuBaru.pengarang[strcspn(bukuBaru.pengarang, "\n")] = 0;
+    
+    printf("Masukkan Tahun: ");
+    fgets(bukuBaru.tahun, sizeof(bukuBaru.tahun), stdin);
+    bukuBaru.tahun[strcspn(bukuBaru.tahun, "\n")] = 0;
+    
+    bukuBaru.status = 1; // Buku baru selalu tersedia
+    
+    root = insertBST(root, bukuBaru);
+    printf("Buku berhasil ditambahkan!\n");
     return root;
+}
+
+struct bstNode* hapusBukuBST(struct bstNode* root) {
+    int idHapus;
+    printf("Masukkan ID Buku yang akan dihapus: ");
+    scanf("%d", &idHapus);
+    while (getchar() != '\n');
+    
+    struct bstNode* cek = searchBST(root, idHapus);
+    if (cek == NULL) {
+        printf("Buku dengan ID %d tidak ditemukan.\n", idHapus);
+    } else if (cek->data.status == 0) {
+        printf("Buku sedang dipinjam, tidak dapat dihapus.\n");
+    } else {
+        root = deleteBST(root, idHapus);
+        printf("Buku berhasil dihapus!\n");
+    }
+    return root;
+}
+
+void tampilkanMenuBST() {
+    printf("\n=== MENU BST ===\n");
+    printf("1. Lihat Semua Buku (Inorder)\n");
+    printf("2. Cari Buku\n");
+    printf("3. Tambah Buku\n");
+    printf("4. Hapus Buku\n");
+    printf("0. Home\n");
+    printf("Pilihan: ");
 }
 
 void bstHome(int idUser, char username[]) {
@@ -1132,13 +1307,7 @@ void bstHome(int idUser, char username[]) {
     root = bacaBukuBST();
 
     while (1) {
-        printf("\n=== MENU BST ===\n");
-        printf("1. Lihat Semua Buku (Inorder)\n");
-        printf("2. Cari Buku\n");
-        printf("3. Tambah Buku\n");
-        printf("4. Hapus Buku\n");
-        printf("0. Home\n");
-        printf("Pilihan: ");
+        tampilkanMenuBST();
         
         if (scanf("%d", &pilihan) != 1) {
             while (getchar() != '\n');
@@ -1148,76 +1317,21 @@ void bstHome(int idUser, char username[]) {
         while (getchar() != '\n');
 
         switch (pilihan) {
-            case 1: {
-                if (root == NULL) {
-                    printf("Tidak ada data buku.\n");
-                } else {
-                    printf("\n=== DAFTAR BUKU ===\n");
-                    inorderBST(root);
-                }
+            case 1:
+                lihatSemuaBukuBST(root);
                 break;
-            }
-            case 2: {
-                int idCari;
-                printf("Masukkan ID Buku yang dicari: ");
-                scanf("%d", &idCari);
-                while (getchar() != '\n');
-                
-                struct bstNode* hasil = searchBST(root, idCari);
-                if (hasil != NULL) {
-                    printf("\n=== BUKU DITEMUKAN ===\n");
-                    tampilPerBuku(&hasil->data);
-                } else {
-                    printf("Buku dengan ID %d tidak ditemukan.\n", idCari);
-                }
+            case 2:
+                cariBukuBST(root);
                 break;
-            }
-            case 3: {
-                struct buku bukuBaru;
-                printf("\n=== TAMBAH BUKU ===\n");
-                printf("Masukkan ID Buku: ");
-                scanf("%d", &bukuBaru.idBuku);
-                while (getchar() != '\n');
-                
-                printf("Masukkan Judul: ");
-                fgets(bukuBaru.judul, sizeof(bukuBaru.judul), stdin);
-                bukuBaru.judul[strcspn(bukuBaru.judul, "\n")] = 0;
-                
-                printf("Masukkan Pengarang: ");
-                fgets(bukuBaru.pengarang, sizeof(bukuBaru.pengarang), stdin);
-                bukuBaru.pengarang[strcspn(bukuBaru.pengarang, "\n")] = 0;
-                
-                printf("Masukkan Tahun: ");
-                fgets(bukuBaru.tahun, sizeof(bukuBaru.tahun), stdin);
-                bukuBaru.tahun[strcspn(bukuBaru.tahun, "\n")] = 0;
-                
-                bukuBaru.status = 1; // Buku baru selalu tersedia
-                
-                root = insertBST(root, bukuBaru);
-                printf("Buku berhasil ditambahkan!\n");
+            case 3:
+                root = tambahBukuBST(root);
                 break;
-            }
-            case 4: {
-                int idHapus;
-                printf("Masukkan ID Buku yang akan dihapus: ");
-                scanf("%d", &idHapus);
-                while (getchar() != '\n');
-                
-                struct bstNode* cek = searchBST(root, idHapus);
-                if (cek == NULL) {
-                    printf("Buku dengan ID %d tidak ditemukan.\n", idHapus);
-                } else if (cek->data.status == 0) {
-                    printf("Buku sedang dipinjam, tidak dapat dihapus.\n");
-                } else {
-                    root = deleteBST(root, idHapus);
-                    printf("Buku berhasil dihapus!\n");
-                }
+            case 4:
+                root = hapusBukuBST(root);
                 break;
-            }
-            case 5: {
+            case 0:
                 freeBST(root);
                 return;
-            }
             default:
                 printf("Pilihan tidak valid!\n");
         }
@@ -1382,6 +1496,34 @@ struct akun login()
 
     printf("\nLogin berhasil!\nSelamat datang, %s\n", user.username);
     return user;
+}
+
+// Fungsi untuk membebaskan memori BST
+void freeBST(struct bstNode* root) {
+    if (root != NULL) {
+        freeBST(root->left);
+        freeBST(root->right);
+        free(root);
+    }
+}
+
+// Fungsi untuk membaca data buku ke BST
+struct bstNode* bacaBukuBST() {
+    FILE *file = openFile("databuku.txt", "r");
+    if (file == NULL)
+        return NULL;
+
+    struct bstNode* root = NULL;
+    struct buku tempBuku;
+
+    while (fscanf(file, "%d#%99[^#]#%99[^#]#%9[^#]#%d\n",
+                &tempBuku.idBuku, tempBuku.judul, tempBuku.pengarang,
+                tempBuku.tahun, &tempBuku.status) == 5) {
+        root = insertBST(root, tempBuku);
+    }
+
+    fclose(file);
+    return root;
 }
 
 int main()
