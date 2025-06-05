@@ -1,0 +1,15 @@
+1#Laskar Pelangi#Andrea Hirata#2005#1
+2#Bumi Manusia#Pramoedya Ananta Toer#1980#1
+3#Ayat-Ayat Cinta#Habiburrahman El Shirazy#2004#1
+4#Perahu Kertas#Dee Lestari#2009#1
+5#Negeri 5 Menara#Ahmad Fuadi#2009#1
+6#Cantik Itu Luka#Eka Kurniawan#2002#1
+7#Ronggeng Dukuh Paruk#Ahmad Tohari#1982#1
+8#Supernova#Leila S. Chudori#2001#1
+9#Pulang#Pidi Baiq#2012#1
+10#Dilan: Dia adalah Dilanku Tahun 1990#Tere Liye#2014#1
+11#Hujan#Tere Liye#2016#1
+12#Aroma Karsa#Dee Lestari#2018#1
+13#Partikel#Dee Lestari#2012#1
+14#Rectoverso#Dee Lestari#2008#1
+15#Rindu#Tere Liye#2011#1
