@@ -14,6 +14,12 @@ struct buku
     int status; // 0 = dipinjam, 1 = tersedia
 };
 
+struct heapBuku {
+    struct buku *data;
+    int size;
+    int capacity;
+};
+
 struct bstNode {
     struct buku data;
     struct bstNode *left;
@@ -44,6 +50,28 @@ struct bstNode* tambahBukuBST(struct bstNode* root);
 struct bstNode* hapusBukuBST(struct bstNode* root);
 void tampilkanMenuBST();
 void bstHome(int idUser, char username[]);
+void menuHeap(int idUser, char username[]);
+
+// Heap function prototypes
+struct heapBuku* createHeap(int capacity);
+void freeHeap(struct heapBuku* heap);
+void heapify(struct heapBuku* heap, int i);
+void heapifyMinID(struct heapBuku* heap, int i);
+void heapifyMaxJudul(struct heapBuku* heap, int i);
+void heapifyMinJudul(struct heapBuku* heap, int i);
+void insertHeap(struct heapBuku* heap, struct buku book);
+struct buku extractMax(struct heapBuku* heap);
+void displayHeap(struct heapBuku* heap);
+void searchInHeap(struct heapBuku* heap, int idBuku);
+struct heapBuku* bacaBukuHeap();
+void buildHeap(struct heapBuku* heap, int heapType, int sortBy);
+void tampilanMenuHeap();
+void tampilkanHeap(int idUser, char username[], struct heapBuku* heap, int heapType, int sortBy);
+void cariBukuHeap(int idUser, char username[], struct heapBuku* heap);
+void tambahBukuHeap(int idUser, char username[], struct heapBuku* heap, int heapType, int sortBy);
+void hapusBukuPrioritas(int idUser, char username[], struct heapBuku* heap, int heapType, int sortBy);
+
+// Global variables removed - now using parameter passing
 
 struct akun
 {
@@ -1432,17 +1460,18 @@ void firstHome(int idUser, char username[])
         printf("Pilih Algoritma yang di inginkan:\n");
         printf("1. Linear\n");
         printf("2. BST\n");
-        printf("3. Log out\n");
+        printf("3. Heap\n");
+        printf("4. Log out\n");
         printf("======================================\n");
         printf("Pilihan: ");
         
         if (scanf("%d", &pilihan) != 1) {
             while (getchar() != '\n'); // Clear input buffer
-            printf("Input tidak valid! Masukkan angka 1-3.\n");
+            printf("Input tidak valid! Masukkan angka 1-4.\n");
             continue;
         }
         while (getchar() != '\n'); // Clear any remaining input
-
+        
         switch (pilihan)
         {
         case 1:
@@ -1452,12 +1481,15 @@ void firstHome(int idUser, char username[])
             bstHome(idUser, username);
             break;
         case 3:
+            menuHeap(idUser, username);
+            break;
+        case 4:
             printf("Logging out...\n");
             return;
         default:
-            printf("Pilihan tidak valid! Masukkan angka 1-3.\n");
+            printf("Pilihan tidak valid! Masukkan angka 1-4.\n");
         }
-    } while (pilihan != 3);
+    } while (pilihan != 4);
 }
 
 void linearHome(int idUser, char username[])
@@ -1606,6 +1638,456 @@ struct bstNode* bacaBukuBST() {
 
     fclose(file);
     return root;
+}
+
+// Fungsi untuk menampilkan heap dengan konfigurasi
+void tampilkanHeap(int idUser, char username[], struct heapBuku* heap, int heapType, int sortBy) {
+    if (heap == NULL) {
+        printf("Heap belum dibuat. Silakan buat heap terlebih dahulu.\n");
+        printf("\nTekan Enter untuk melanjutkan...");
+        getchar();
+        return;
+    }
+    
+    printf("\n=== TAMPILAN HEAP ===\n");
+    printf("Jenis: %s\n", heapType == 1 ? "MAX HEAP" : "MIN HEAP");
+    printf("Kriteria: %s\n", sortBy == 1 ? "ID Buku" : "Judul Buku");
+    printf("===================\n");
+    displayHeap(heap);
+    printf("\nTekan Enter untuk melanjutkan...");
+    getchar();
+}
+
+// Fungsi untuk mencari buku dalam heap
+void cariBukuHeap(int idUser, char username[], struct heapBuku* heap) {
+    if (heap == NULL) {
+        printf("Heap belum dibuat. Silakan buat heap terlebih dahulu.\n");
+        printf("\nTekan Enter untuk melanjutkan...");
+        getchar();
+        return;
+    }
+    
+    int idBuku;
+    printf("Masukkan ID buku yang dicari: ");
+    if (scanf("%d", &idBuku) == 1) {
+        while (getchar() != '\n');
+        searchInHeap(heap, idBuku);
+    } else {
+        while (getchar() != '\n');
+        printf("ID tidak valid!\n");
+    }
+}
+
+// Fungsi untuk menambah buku ke heap
+void tambahBukuHeap(int idUser, char username[], struct heapBuku* heap, int heapType, int sortBy) {
+    if (heap == NULL) {
+        printf("Heap belum dibuat. Silakan buat heap terlebih dahulu.\n");
+        printf("\nTekan Enter untuk melanjutkan...");
+        getchar();
+        return;
+    }
+    
+    struct buku bukuBaru;
+    printf("\n=== TAMBAH BUKU KE HEAP ===\n");
+    printf("ID Buku: ");
+    if (scanf("%d", &bukuBaru.idBuku) != 1) {
+        while (getchar() != '\n');
+        printf("ID tidak valid!\n");
+        return;
+    }
+    while (getchar() != '\n');
+    
+    printf("Judul: ");
+    scanf(" %99[^\n]", bukuBaru.judul);
+    
+    printf("Pengarang: ");
+    scanf(" %99[^\n]", bukuBaru.pengarang);
+    
+    printf("Tahun: ");
+    scanf(" %9[^\n]", bukuBaru.tahun);
+    
+    bukuBaru.status = 1; // Default tersedia
+    
+    insertHeap(heap, bukuBaru);
+    // Rebuild heap sesuai konfigurasi yang dipilih user
+    buildHeap(heap, heapType, sortBy);
+    printf("Buku berhasil ditambahkan ke heap!\n");
+    
+    printf("\nTekan Enter untuk melanjutkan...");
+    getchar();
+}
+
+// Fungsi untuk menghapus buku dengan prioritas tertinggi
+void hapusBukuPrioritas(int idUser, char username[], struct heapBuku* heap, int heapType, int sortBy) {
+    if (heap == NULL) {
+        printf("Heap belum dibuat. Silakan buat heap terlebih dahulu.\n");
+        printf("\nTekan Enter untuk melanjutkan...");
+        getchar();
+        return;
+    }
+    
+    if (heap->size <= 0) {
+        printf("Heap kosong, tidak ada buku yang dapat dihapus.\n");
+        printf("\nTekan Enter untuk melanjutkan...");
+        getchar();
+        return;
+    }
+    
+    struct buku bukuDihapus = extractMax(heap);
+    
+    printf("\n=== BUKU DENGAN PRIORITAS TERTINGGI DIHAPUS ===\n");
+    printf("Heap Type: %s\n", heapType == 1 ? "MAX HEAP" : "MIN HEAP");
+    printf("Kriteria: %s\n", sortBy == 1 ? "ID Buku" : "Judul Buku");
+    printf("============================================\n");
+    tampilPerBuku(&bukuDihapus);
+    printf("Buku berhasil dihapus dari heap!\n");
+    
+    printf("\nTekan Enter untuk melanjutkan...");
+    getchar();
+}
+
+void menuHeap(int idUser, char username[]) {
+    struct heapBuku* heap = NULL;
+    int pilihan;
+    int heapType, sortBy;
+    
+    // Ask user to choose heap type first
+    printf("\n=== PILIH JENIS HEAP ===\n");
+    printf("1. MAX HEAP\n");
+    printf("2. MIN HEAP\n");
+    printf("Pilihan: ");
+    
+    if (scanf("%d", &heapType) != 1 || (heapType != 1 && heapType != 2)) {
+        while (getchar() != '\n');
+        printf("Pilihan tidak valid! Kembali ke menu utama.\n");
+        return;
+    }
+    while (getchar() != '\n');
+    
+    // Ask user to choose sorting criteria
+    printf("\n=== PILIH KRITERIA PENGURUTAN ===\n");
+    printf("1. Berdasarkan ID Buku\n");
+    printf("2. Berdasarkan Judul Buku\n");
+    printf("Pilihan: ");
+    
+    if (scanf("%d", &sortBy) != 1 || (sortBy != 1 && sortBy != 2)) {
+        while (getchar() != '\n');
+        printf("Pilihan tidak valid! Kembali ke menu utama.\n");
+        return;
+    }
+    while (getchar() != '\n');
+    
+    // Load books into heap
+    heap = bacaBukuHeap();
+    if (heap == NULL) {
+        printf("Gagal memuat data buku ke heap.\n");
+        return;
+    }
+      // Build heap according to user's choice
+    buildHeap(heap, heapType, sortBy);
+    
+    // Display heap type information
+    printf("\n=== HEAP CONFIGURATION ===\n");
+    printf("Jenis Heap: %s\n", heapType == 1 ? "MAX HEAP" : "MIN HEAP");
+    printf("Kriteria: %s\n", sortBy == 1 ? "ID Buku" : "Judul Buku (Alfabetis)");
+    printf("==========================\n");
+
+    while (1) {
+        tampilanMenuHeap();
+        
+        if (scanf("%d", &pilihan) != 1) {
+            while (getchar() != '\n');
+            printf("Input tidak valid!\n");
+            continue;
+        }
+        while (getchar() != '\n');          switch (pilihan) {
+            case 1:
+                tampilkanHeap(idUser, username, heap, heapType, sortBy);
+                break;
+            case 2:
+                cariBukuHeap(idUser, username, heap);
+                break;
+            case 3:
+                tambahBukuHeap(idUser, username, heap, heapType, sortBy);
+                break;
+            case 4:
+                hapusBukuPrioritas(idUser, username, heap, heapType, sortBy);
+                break;
+            case 0:
+                freeHeap(heap);
+                return;
+            default:
+                printf("Pilihan tidak valid!\n");}
+    }
+}
+
+//============ HEAP IMPLEMENTATION ================
+
+
+
+// Create heap with specified capacity
+struct heapBuku* createHeap(int capacity) {
+    struct heapBuku* heap = (struct heapBuku*)malloc(sizeof(struct heapBuku));
+    if (heap == NULL) return NULL;
+    
+    heap->data = (struct buku*)malloc(capacity * sizeof(struct buku));
+    if (heap->data == NULL) {
+        free(heap);
+        return NULL;
+    }
+    heap->size = 0;
+    heap->capacity = capacity;
+    return heap;
+}
+
+// Free heap memory
+void freeHeap(struct heapBuku* heap) {
+    if (heap) {
+        if (heap->data) free(heap->data);
+        free(heap);
+    }
+}
+
+// Max heapify based on book ID
+void heapify(struct heapBuku* heap, int i) {
+    int largest = i;
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
+    
+    if (left < heap->size && heap->data[left].idBuku > heap->data[largest].idBuku)
+        largest = left;
+    
+    if (right < heap->size && heap->data[right].idBuku > heap->data[largest].idBuku)
+        largest = right;
+    
+    if (largest != i) {
+        struct buku temp = heap->data[i];
+        heap->data[i] = heap->data[largest];
+        heap->data[largest] = temp;
+        heapify(heap, largest);
+    }
+}
+
+// Min heapify based on book ID
+void heapifyMinID(struct heapBuku* heap, int i) {
+    int smallest = i;
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
+    
+    if (left < heap->size && heap->data[left].idBuku < heap->data[smallest].idBuku)
+        smallest = left;
+    
+    if (right < heap->size && heap->data[right].idBuku < heap->data[smallest].idBuku)
+        smallest = right;
+    
+    if (smallest != i) {
+        struct buku temp = heap->data[i];
+        heap->data[i] = heap->data[smallest];
+        heap->data[smallest] = temp;
+        heapifyMinID(heap, smallest);
+    }
+}
+
+// Max heapify based on book title (alphabetical)
+void heapifyMaxJudul(struct heapBuku* heap, int i) {
+    int largest = i;
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
+    
+    if (left < heap->size && strcmp(heap->data[left].judul, heap->data[largest].judul) > 0)
+        largest = left;
+    
+    if (right < heap->size && strcmp(heap->data[right].judul, heap->data[largest].judul) > 0)
+        largest = right;
+    
+    if (largest != i) {
+        struct buku temp = heap->data[i];
+        heap->data[i] = heap->data[largest];
+        heap->data[largest] = temp;
+        heapifyMaxJudul(heap, largest);
+    }
+}
+
+// Min heapify based on book title (alphabetical)
+void heapifyMinJudul(struct heapBuku* heap, int i) {
+    int smallest = i;
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
+    
+    if (left < heap->size && strcmp(heap->data[left].judul, heap->data[smallest].judul) < 0)
+        smallest = left;
+    
+    if (right < heap->size && strcmp(heap->data[right].judul, heap->data[smallest].judul) < 0)
+        smallest = right;
+    
+    if (smallest != i) {
+        struct buku temp = heap->data[i];
+        heap->data[i] = heap->data[smallest];
+        heap->data[smallest] = temp;
+        heapifyMinJudul(heap, smallest);
+    }
+}
+
+// Insert book into heap
+void insertHeap(struct heapBuku* heap, struct buku book) {
+    if (heap->size >= heap->capacity) {
+        printf("Heap penuh! Tidak dapat menambah buku.\n");
+        return;
+    }
+    
+    heap->data[heap->size] = book;
+    heap->size++;
+}
+
+// Extract max element from heap
+struct buku extractMax(struct heapBuku* heap) {
+    struct buku emptyBook = {0};
+    if (heap->size <= 0) {
+        return emptyBook;
+    }
+    
+    struct buku max = heap->data[0];
+    heap->data[0] = heap->data[heap->size - 1];
+    heap->size--;
+    
+    if (heap->size > 0) {
+        heapify(heap, 0); // Default to max heap by ID
+    }
+    
+    return max;
+}
+
+// Display heap contents
+void displayHeap(struct heapBuku* heap) {
+    if (heap->size == 0) {
+        printf("Heap kosong.\n");
+        return;
+    }
+    
+    printf("Heap memiliki %d buku.\n", heap->size);
+    printf("Navigasi: (n) Buku Selanjutnya | (p) Buku Sebelumnya | (q) Kembali\n\n");
+    
+    int currentIndex = 0;
+    char pilihan;
+
+    while (1) {
+        printf("=== Buku %d dari %d ===\n", currentIndex + 1, heap->size);
+        tampilPerBuku(&heap->data[currentIndex]);
+
+        printf("Pilih aksi: (n) Buku Selanjutnya | (p) Buku Sebelumnya | (q) Kembali\n");
+        printf("Pilihan: ");
+        scanf(" %c", &pilihan);
+
+        switch (pilihan) {
+            case 'n':
+                if (currentIndex < heap->size - 1) {
+                    currentIndex++;
+                } else {
+                    currentIndex = 0; // Kembali ke awal
+                }
+                break;
+            case 'p':
+                if (currentIndex > 0) {
+                    currentIndex--;
+                } else {
+                    currentIndex = heap->size - 1; // Ke akhir
+                }
+                break;
+            case 'q':
+                return;
+            default:
+                printf("Pilihan tidak valid!\n");
+        }
+    }
+}
+
+// Search book in heap by ID
+void searchInHeap(struct heapBuku* heap, int idBuku) {
+    int found = 0;
+    for (int i = 0; i < heap->size; i++) {
+        if (heap->data[i].idBuku == idBuku) {
+            printf("\n=== BUKU DITEMUKAN ===\n");
+            tampilPerBuku(&heap->data[i]);
+            found = 1;
+            break;
+        }
+    }
+    
+    if (!found) {
+        printf("Buku dengan ID %d tidak ditemukan dalam heap.\n", idBuku);
+    }
+    
+    printf("\nTekan Enter untuk melanjutkan...");
+    getchar();
+}
+
+// Read books from file and create heap
+struct heapBuku* bacaBukuHeap() {
+    FILE *file = openFile("databuku.txt", "r");
+    if (file == NULL) {
+        printf("Gagal membuka file databuku.txt\n");
+        return NULL;
+    }
+    
+    // Count books first
+    int count = 0;
+    struct buku tempBuku;
+    while (fscanf(file, "%d#%99[^#]#%99[^#]#%9[^#]#%d\n",
+                  &tempBuku.idBuku, tempBuku.judul, tempBuku.pengarang,
+                  tempBuku.tahun, &tempBuku.status) == 5) {
+        count++;
+    }
+    
+    rewind(file);
+    
+    struct heapBuku* heap = createHeap(count + 10); // Extra space for new books
+    if (heap == NULL) {
+        fclose(file);
+        return NULL;
+    }
+    
+    // Read books into heap
+    while (fscanf(file, "%d#%99[^#]#%99[^#]#%9[^#]#%d\n",
+                  &tempBuku.idBuku, tempBuku.judul, tempBuku.pengarang,
+                  tempBuku.tahun, &tempBuku.status) == 5) {
+        insertHeap(heap, tempBuku);
+    }
+    
+    fclose(file);
+    return heap;
+}
+
+// Build heap according to user's choice
+void buildHeap(struct heapBuku* heap, int heapType, int sortBy) {
+    if (heap->size <= 1) return;
+    
+    // Build heap from bottom up
+    for (int i = (heap->size / 2) - 1; i >= 0; i--) {
+        if (heapType == 1) { // MAX HEAP
+            if (sortBy == 1) { // ID
+                heapify(heap, i);
+            } else { // Title
+                heapifyMaxJudul(heap, i);
+            }
+        } else { // MIN HEAP
+            if (sortBy == 1) { // ID
+                heapifyMinID(heap, i);
+            } else { // Title
+                heapifyMinJudul(heap, i);
+            }
+        }
+    }
+}
+
+// Display heap menu
+void tampilanMenuHeap() {
+    printf("\n=== MENU HEAP ===\n");
+    printf("1. Tampilkan Heap\n");
+    printf("2. Cari Buku\n");
+    printf("3. Tambah Buku\n");
+    printf("4. Extract Buku\n");
+    printf("0. Kembali ke Home\n");
+    printf("Pilihan: ");
 }
 
 int main()
