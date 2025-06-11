@@ -4,7 +4,7 @@
 #include <time.h>
 #include <ctype.h>
 
-// Structure definitions
+// =========== Struct ===========================
 struct buku
 {
     int idBuku;
@@ -24,54 +24,8 @@ struct bstNode {
     struct buku data;
     struct bstNode *left;
     struct bstNode *right;
-    int height;  // Tambahan untuk AVL Tree
+    int height;
 };
-
-// Function prototypes
-void tampilPerBuku(struct buku *buku);
-FILE *openFile(const char *filename, const char *mode);
-
-// BST function prototypes
-struct bstNode* createNode(struct buku data);
-struct bstNode* searchBST(struct bstNode* root, int idBuku);
-struct bstNode* insertBST(struct bstNode* root, struct buku data);
-struct bstNode* minValueNode(struct bstNode* node);
-struct bstNode* deleteBST(struct bstNode* root, int idBuku);
-struct bstNode* bacaBukuBST();
-void freeBST(struct bstNode* root);
-int countNodes(struct bstNode* root);
-void storeInorder(struct bstNode* root, struct bstNode** arr, int* index);
-void lihatBukuUrutan(struct bstNode** nodes, int count, int sortType);
-void lihatSemuaBukuBST(struct bstNode* root);
-int compareJudulAZ(const void* a, const void* b);
-int compareJudulZA(const void* a, const void* b);
-void cariBukuBST(struct bstNode* root);
-struct bstNode* tambahBukuBST(struct bstNode* root);
-struct bstNode* hapusBukuBST(struct bstNode* root);
-void tampilkanMenuBST();
-void bstHome(int idUser, char username[]);
-void menuHeap(int idUser, char username[]);
-
-// Heap function prototypes
-struct heapBuku* createHeap(int capacity);
-void freeHeap(struct heapBuku* heap);
-void heapify(struct heapBuku* heap, int i);
-void heapifyMinID(struct heapBuku* heap, int i);
-void heapifyMaxJudul(struct heapBuku* heap, int i);
-void heapifyMinJudul(struct heapBuku* heap, int i);
-void insertHeap(struct heapBuku* heap, struct buku book);
-struct buku extractMax(struct heapBuku* heap);
-void displayHeap(struct heapBuku* heap);
-void searchInHeap(struct heapBuku* heap, int idBuku);
-struct heapBuku* bacaBukuHeap();
-void buildHeap(struct heapBuku* heap, int heapType, int sortBy);
-void tampilanMenuHeap();
-void tampilkanHeap(int idUser, char username[], struct heapBuku* heap, int heapType, int sortBy);
-void cariBukuHeap(int idUser, char username[], struct heapBuku* heap);
-void tambahBukuHeap(int idUser, char username[], struct heapBuku* heap, int heapType, int sortBy);
-void hapusBukuPrioritas(int idUser, char username[], struct heapBuku* heap, int heapType, int sortBy);
-
-// Global variables removed - now using parameter passing
 
 struct akun
 {
@@ -92,6 +46,52 @@ struct queue
     struct node *rear;
     int size;
 };
+
+// =========== Function Prototypes ==============
+void tampilPerBuku(struct buku *buku);
+FILE *openFile(const char *filename, const char *mode);
+
+// =========== BST Function Prototypes ============
+struct bstNode* createNode(struct buku data);
+struct bstNode* searchBST(struct bstNode* root, int idBuku);
+struct bstNode* insertBST(struct bstNode* root, struct buku data);
+struct bstNode* minValueNode(struct bstNode* node);
+struct bstNode* deleteBST(struct bstNode* root, int idBuku);
+struct bstNode* bacaBukuBST();
+void freeBST(struct bstNode* root);
+int countNodes(struct bstNode* root);
+void storeInorder(struct bstNode* root, struct bstNode** arr, int* index);
+void lihatBukuUrutan(struct bstNode** nodes, int count, int sortType);
+void lihatSemuaBukuBST(struct bstNode* root);
+int compareJudulAZ(const void* a, const void* b);
+int compareJudulZA(const void* a, const void* b);
+void cariBukuBST(struct bstNode* root);
+struct bstNode* tambahBukuBST(struct bstNode* root);
+struct bstNode* hapusBukuBST(struct bstNode* root);
+void tampilkanMenuBST();
+void bstHome(int idUser, char username[]);
+void menuHeap(int idUser, char username[]);
+
+// =========== Heap Function Prototypes ==========
+struct heapBuku* createHeap(int capacity);
+void freeHeap(struct heapBuku* heap);
+void heapify(struct heapBuku* heap, int i);
+void heapifyMinID(struct heapBuku* heap, int i);
+void heapifyMaxJudul(struct heapBuku* heap, int i);
+void heapifyMinJudul(struct heapBuku* heap, int i);
+void insertHeap(struct heapBuku* heap, struct buku book);
+struct buku extractMax(struct heapBuku* heap);
+void displayHeap(struct heapBuku* heap);
+void searchInHeap(struct heapBuku* heap, int idBuku);
+struct heapBuku* bacaBukuHeap();
+void buildHeap(struct heapBuku* heap, int heapType, int sortBy);
+void tampilanMenuHeap();
+void tampilkanHeap(int idUser, char username[], struct heapBuku* heap, int heapType, int sortBy);
+void cariBukuHeap(int idUser, char username[], struct heapBuku* heap);
+void tambahBukuHeap(int idUser, char username[], struct heapBuku* heap, int heapType, int sortBy);
+void hapusBukuPrioritas(int idUser, char username[], struct heapBuku* heap, int heapType, int sortBy);
+
+
 
 //=========== BST ==============================
 
@@ -167,7 +167,7 @@ struct bstNode* searchBST(struct bstNode* root, int idBuku) {
 
 // Fungsi untuk memasukkan node baru ke BST
 struct bstNode* insertBST(struct bstNode* root, struct buku data) {
-    // 1. Lakukan BST insert normal
+    // 1. BST insert normal
     if (root == NULL)
         return createNode(data);
 
@@ -175,13 +175,13 @@ struct bstNode* insertBST(struct bstNode* root, struct buku data) {
         root->left = insertBST(root->left, data);
     else if (data.idBuku > root->data.idBuku)
         root->right = insertBST(root->right, data);
-    else // Tidak mengizinkan duplikat
+    else // Tidak boleh node duplikat
         return root;
 
     // 2. Update tinggi node
     root->height = 1 + max(height(root->left), height(root->right));
 
-    // 3. Dapatkan balance factor untuk menentukan apakah node tidak seimbang
+    // 3. Cek seimbang dengan balance factor
     int balance = getBalance(root);
 
     // Kasus Left Left
@@ -274,9 +274,9 @@ int compareJudulZA(const void* a, const void* b) {
 }
 
 void lihatBukuUrutan(struct bstNode** nodes, int count, int sortType) {
-    if (sortType == 1) { // A-Z
+    if (sortType == 1) { // untuk A-Z
         qsort(nodes, count, sizeof(struct bstNode*), compareJudulAZ);
-    } else if (sortType == 2) { // Z-A
+    } else if (sortType == 2) { // untuk Z-A
         qsort(nodes, count, sizeof(struct bstNode*), compareJudulZA);
     }
     
@@ -335,7 +335,7 @@ void lihatSemuaBukuBST(struct bstNode* root) {
 
         switch (pilihan) {
             case 1:
-                lihatBukuUrutan(nodes, count, 0); // Urutan normal (sesuai BST)
+                lihatBukuUrutan(nodes, count, 0);
                 break;
             case 2: {
                 int subPilihan;
@@ -348,10 +348,10 @@ void lihatSemuaBukuBST(struct bstNode* root) {
 
                 switch (subPilihan) {
                     case 1:
-                        lihatBukuUrutan(nodes, count, 1); // A-Z
+                        lihatBukuUrutan(nodes, count, 1);
                         break;
                     case 2:
-                        lihatBukuUrutan(nodes, count, 2); // Z-A
+                        lihatBukuUrutan(nodes, count, 2);
                         break;
                     case 0:
                         break;
@@ -477,7 +477,35 @@ void bstHome(int idUser, char username[]) {
     }
 }
 
-//==============================================
+// Fungsi untuk membebaskan memori BST
+void freeBST(struct bstNode* root) {
+    if (root != NULL) {
+        freeBST(root->left);
+        freeBST(root->right);
+        free(root);
+    }
+}
+
+// Fungsi untuk membaca data buku ke BST
+struct bstNode* bacaBukuBST() {
+    FILE *file = openFile("databuku.txt", "r");
+    if (file == NULL)
+        return NULL;
+
+    struct bstNode* root = NULL;
+    struct buku tempBuku;
+
+    while (fscanf(file, "%d#%99[^#]#%99[^#]#%9[^#]#%d\n",
+                &tempBuku.idBuku, tempBuku.judul, tempBuku.pengarang,
+                tempBuku.tahun, &tempBuku.status) == 5) {
+        root = insertBST(root, tempBuku);
+    }
+
+    fclose(file);
+    return root;
+}
+
+// ================= Linear ==============================
 
 FILE *openFile(const char *filename, const char *mode)
 {
@@ -727,7 +755,7 @@ void lihatBuku(int idUser, struct queue *queue, char username[])
         case 'p':
             if (current == queue->front)
             {
-                // Find last node
+                // cari node terakhir
                 struct node *temp = queue->front;
                 while (temp->next != NULL)
                 {
@@ -737,7 +765,7 @@ void lihatBuku(int idUser, struct queue *queue, char username[])
             }
             else
             {
-                // Find previous node
+                // cari node sebelumnya
                 struct node *temp = queue->front;
                 while (temp->next != current)
                 {
@@ -763,7 +791,6 @@ void lihatBuku(int idUser, struct queue *queue, char username[])
             printf("Pilihan tidak valid!\n");
         }
     }
-    // Current node is managed by queue, no need to free here
 }
 
 void lihatBukuDiambil(int idUser, struct queue *queue, char username[])
@@ -912,12 +939,12 @@ void kembalikanBuku(int idUser, struct queue *queue, char username[])
                 remove("databuku.txt");
                 rename("tempData.txt", "databuku.txt");
 
-                // Update queue with new data to ensure consistency
+                // update queue 
                 freeQueue(queue);
                 initQueue(queue);
                 bacaBuku(queue);
 
-                // Find the returned book in the updated queue
+                // cari buku yang dikembalikan di queue
                 struct node *current = queue->front;
                 while (current != NULL)
                 {
@@ -1450,6 +1477,8 @@ void editBuku(struct queue *queue, int *jumlahBuku)
     }
 }
 
+// ======== Home Function  =============
+
 void linearHome(int idUser, char username[]);
 
 void firstHome(int idUser, char username[])
@@ -1559,10 +1588,11 @@ void linearHome(int idUser, char username[])
     }
 }
 
+// ======== Login Function ========
 struct akun login()
 {
     FILE *file = openFile("datauser.txt", "r");
-    struct akun user = {0}; // Initialize with zeros
+    struct akun user = {0};
     
     if (file == NULL)
         return user;
@@ -1612,33 +1642,7 @@ struct akun login()
     return user;
 }
 
-// Fungsi untuk membebaskan memori BST
-void freeBST(struct bstNode* root) {
-    if (root != NULL) {
-        freeBST(root->left);
-        freeBST(root->right);
-        free(root);
-    }
-}
-
-// Fungsi untuk membaca data buku ke BST
-struct bstNode* bacaBukuBST() {
-    FILE *file = openFile("databuku.txt", "r");
-    if (file == NULL)
-        return NULL;
-
-    struct bstNode* root = NULL;
-    struct buku tempBuku;
-
-    while (fscanf(file, "%d#%99[^#]#%99[^#]#%9[^#]#%d\n",
-                &tempBuku.idBuku, tempBuku.judul, tempBuku.pengarang,
-                tempBuku.tahun, &tempBuku.status) == 5) {
-        root = insertBST(root, tempBuku);
-    }
-
-    fclose(file);
-    return root;
-}
+// ======== Heap Function ========
 
 // Fungsi untuk menampilkan heap dengan konfigurasi
 void tampilkanHeap(int idUser, char username[], struct heapBuku* heap, int heapType, int sortBy) {
@@ -1821,11 +1825,7 @@ void menuHeap(int idUser, char username[]) {
     }
 }
 
-//============ HEAP IMPLEMENTATION ================
-
-
-
-// Create heap with specified capacity
+// Buat heap dengan kapasitas tertentu
 struct heapBuku* createHeap(int capacity) {
     struct heapBuku* heap = (struct heapBuku*)malloc(sizeof(struct heapBuku));
     if (heap == NULL) return NULL;
@@ -1848,7 +1848,7 @@ void freeHeap(struct heapBuku* heap) {
     }
 }
 
-// Max heapify based on book ID
+// Max heap dari file databuku.txt
 void heapify(struct heapBuku* heap, int i) {
     int largest = i;
     int left = 2 * i + 1;
@@ -1868,7 +1868,7 @@ void heapify(struct heapBuku* heap, int i) {
     }
 }
 
-// Min heapify based on book ID
+// Min heap dari file databuku.txt
 void heapifyMinID(struct heapBuku* heap, int i) {
     int smallest = i;
     int left = 2 * i + 1;
@@ -1888,7 +1888,7 @@ void heapifyMinID(struct heapBuku* heap, int i) {
     }
 }
 
-// Max heapify based on book title (alphabetical)
+// Max heapif dari judul buku (alphabetical)
 void heapifyMaxJudul(struct heapBuku* heap, int i) {
     int largest = i;
     int left = 2 * i + 1;
@@ -1908,7 +1908,7 @@ void heapifyMaxJudul(struct heapBuku* heap, int i) {
     }
 }
 
-// Min heapify based on book title (alphabetical)
+// Min heapif dari judul buku (alphabetical)
 void heapifyMinJudul(struct heapBuku* heap, int i) {
     int smallest = i;
     int left = 2 * i + 1;
@@ -1928,7 +1928,7 @@ void heapifyMinJudul(struct heapBuku* heap, int i) {
     }
 }
 
-// Insert book into heap
+// masukkan buku ke dalam heap
 void insertHeap(struct heapBuku* heap, struct buku book) {
     if (heap->size >= heap->capacity) {
         printf("Heap penuh! Tidak dapat menambah buku.\n");
@@ -1939,7 +1939,7 @@ void insertHeap(struct heapBuku* heap, struct buku book) {
     heap->size++;
 }
 
-// Extract max element from heap
+// ekstrak buku dengan prioritas tertinggi dari heap
 struct buku extractMax(struct heapBuku* heap) {
     struct buku emptyBook = {0};
     if (heap->size <= 0) {
@@ -1957,7 +1957,7 @@ struct buku extractMax(struct heapBuku* heap) {
     return max;
 }
 
-// Display heap contents
+// display buku dalam heap
 void displayHeap(struct heapBuku* heap) {
     if (heap->size == 0) {
         printf("Heap kosong.\n");
@@ -2001,7 +2001,7 @@ void displayHeap(struct heapBuku* heap) {
     }
 }
 
-// Search book in heap by ID
+// cari buku dalam heap berdasarkan ID
 void searchInHeap(struct heapBuku* heap, int idBuku) {
     int found = 0;
     for (int i = 0; i < heap->size; i++) {
@@ -2021,7 +2021,7 @@ void searchInHeap(struct heapBuku* heap, int idBuku) {
     getchar();
 }
 
-// Read books from file and create heap
+// baca buku dari file databuku.txt ke dalam heap
 struct heapBuku* bacaBukuHeap() {
     FILE *file = openFile("databuku.txt", "r");
     if (file == NULL) {
@@ -2029,7 +2029,7 @@ struct heapBuku* bacaBukuHeap() {
         return NULL;
     }
     
-    // Count books first
+    // hitung jumlah buku dalam file
     int count = 0;
     struct buku tempBuku;
     while (fscanf(file, "%d#%99[^#]#%99[^#]#%9[^#]#%d\n",
@@ -2046,7 +2046,7 @@ struct heapBuku* bacaBukuHeap() {
         return NULL;
     }
     
-    // Read books into heap
+    // baca buku dari file dan masukkan ke dalam heap
     while (fscanf(file, "%d#%99[^#]#%99[^#]#%9[^#]#%d\n",
                   &tempBuku.idBuku, tempBuku.judul, tempBuku.pengarang,
                   tempBuku.tahun, &tempBuku.status) == 5) {
@@ -2057,29 +2057,29 @@ struct heapBuku* bacaBukuHeap() {
     return heap;
 }
 
-// Build heap according to user's choice
+// buat heap berdasarkan pilihan user
 void buildHeap(struct heapBuku* heap, int heapType, int sortBy) {
     if (heap->size <= 1) return;
     
-    // Build heap from bottom up
+    // buat heap dari bawah ke atas
     for (int i = (heap->size / 2) - 1; i >= 0; i--) {
-        if (heapType == 1) { // MAX HEAP
-            if (sortBy == 1) { // ID
+        if (heapType == 1) {                    // MAX HEAP
+            if (sortBy == 1) {                  // ID
                 heapify(heap, i);
-            } else { // Title
+            } else {                            // Judul
                 heapifyMaxJudul(heap, i);
             }
-        } else { // MIN HEAP
-            if (sortBy == 1) { // ID
+        } else {                                // MIN HEAP
+            if (sortBy == 1) {                  // ID
                 heapifyMinID(heap, i);
-            } else { // Title
+            } else {                            // Title
                 heapifyMinJudul(heap, i);
             }
         }
     }
 }
 
-// Display heap menu
+// Tampilkan menu heap
 void tampilanMenuHeap() {
     printf("\n=== MENU HEAP ===\n");
     printf("1. Tampilkan Heap\n");
@@ -2089,6 +2089,8 @@ void tampilanMenuHeap() {
     printf("0. Kembali ke Home\n");
     printf("Pilihan: ");
 }
+
+//======== Main Function ========
 
 int main()
 {
