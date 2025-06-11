@@ -91,420 +91,6 @@ void cariBukuHeap(int idUser, char username[], struct heapBuku* heap);
 void tambahBukuHeap(int idUser, char username[], struct heapBuku* heap, int heapType, int sortBy);
 void hapusBukuPrioritas(int idUser, char username[], struct heapBuku* heap, int heapType, int sortBy);
 
-
-
-//=========== BST ==============================
-
-// Fungsi untuk mendapatkan tinggi node
-int height(struct bstNode *N) {
-    if (N == NULL)
-        return 0;
-    return N->height;
-}
-
-// Fungsi untuk mendapatkan nilai maksimum dari dua integer
-int max(int a, int b) {
-    return (a > b) ? a : b;
-}
-
-// Fungsi untuk membuat node baru
-struct bstNode* createNode(struct buku data) {
-    struct bstNode* node = (struct bstNode*)malloc(sizeof(struct bstNode));
-    node->data = data;
-    node->left = NULL;
-    node->right = NULL;
-    node->height = 1;  // Node baru memiliki tinggi 1
-    return node;
-}
-
-// Fungsi untuk memutar ke kanan
-struct bstNode *rightRotate(struct bstNode *y) {
-    struct bstNode *x = y->left;
-    struct bstNode *T2 = x->right;
-
-    x->right = y;
-    y->left = T2;
-
-    // Update tinggi
-    y->height = max(height(y->left), height(y->right)) + 1;
-    x->height = max(height(x->left), height(x->right)) + 1;
-
-    return x;
-}
-
-// Fungsi untuk memutar ke kiri
-struct bstNode *leftRotate(struct bstNode *x) {
-    struct bstNode *y = x->right;
-    struct bstNode *T2 = y->left;
-
-    y->left = x;
-    x->right = T2;
-
-    // Update tinggi
-    x->height = max(height(x->left), height(x->right)) + 1;
-    y->height = max(height(y->left), height(y->right)) + 1;
-
-    return y;
-}
-
-// Mendapatkan balance factor dari node N
-int getBalance(struct bstNode *N) {
-    if (N == NULL)
-        return 0;
-    return height(N->left) - height(N->right);
-}
-
-// Fungsi untuk mencari node dalam BST
-struct bstNode* searchBST(struct bstNode* root, int idBuku) {
-    if (root == NULL || root->data.idBuku == idBuku)
-        return root;
-    
-    if (idBuku < root->data.idBuku)
-        return searchBST(root->left, idBuku);
-    
-    return searchBST(root->right, idBuku);
-}
-
-// Fungsi untuk memasukkan node baru ke BST
-struct bstNode* insertBST(struct bstNode* root, struct buku data) {
-    // 1. BST insert normal
-    if (root == NULL)
-        return createNode(data);
-
-    if (data.idBuku < root->data.idBuku)
-        root->left = insertBST(root->left, data);
-    else if (data.idBuku > root->data.idBuku)
-        root->right = insertBST(root->right, data);
-    else // Tidak boleh node duplikat
-        return root;
-
-    // 2. Update tinggi node
-    root->height = 1 + max(height(root->left), height(root->right));
-
-    // 3. Cek seimbang dengan balance factor
-    int balance = getBalance(root);
-
-    // Kasus Left Left
-    if (balance > 1 && data.idBuku < root->left->data.idBuku)
-        return rightRotate(root);
-
-    // Kasus Right Right
-    if (balance < -1 && data.idBuku > root->right->data.idBuku)
-        return leftRotate(root);
-
-    // Kasus Left Right
-    if (balance > 1 && data.idBuku > root->left->data.idBuku) {
-        root->left = leftRotate(root->left);
-        return rightRotate(root);
-    }
-
-    // Kasus Right Left
-    if (balance < -1 && data.idBuku < root->right->data.idBuku) {
-        root->right = rightRotate(root->right);
-        return leftRotate(root);
-    }
-
-    return root;
-}
-
-// Fungsi untuk menemukan node dengan nilai minimum
-struct bstNode* minValueNode(struct bstNode* node) {
-    struct bstNode* current = node;
-    while (current && current->left != NULL)
-        current = current->left;
-    return current;
-}
-
-// Fungsi untuk menghapus node dari BST
-struct bstNode* deleteBST(struct bstNode* root, int idBuku) {
-    if (root == NULL)
-        return root;
-
-    if (idBuku < root->data.idBuku)
-        root->left = deleteBST(root->left, idBuku);
-    else if (idBuku > root->data.idBuku)
-        root->right = deleteBST(root->right, idBuku);
-    else {
-        if (root->left == NULL) {
-            struct bstNode* temp = root->right;
-            free(root);
-            return temp;
-        }
-        else if (root->right == NULL) {
-            struct bstNode* temp = root->left;
-            free(root);
-            return temp;
-        }
-
-        struct bstNode* temp = minValueNode(root->right);
-        root->data = temp->data;
-        root->right = deleteBST(root->right, temp->data.idBuku);
-    }
-    return root;
-}
-
-// Fungsi untuk menghitung jumlah node dalam BST
-int countNodes(struct bstNode* root) {
-    if (root == NULL) return 0;
-    return 1 + countNodes(root->left) + countNodes(root->right);
-}
-
-// Fungsi untuk menyimpan node BST ke array secara inorder
-void storeInorder(struct bstNode* root, struct bstNode** arr, int* index) {
-    if (root == NULL) return;
-    
-    storeInorder(root->left, arr, index);
-    arr[*index] = root;
-    (*index)++;
-    storeInorder(root->right, arr, index);
-}
-
-// Fungsi untuk membandingkan judul buku (A-Z)
-int compareJudulAZ(const void* a, const void* b) {
-    struct bstNode* nodeA = *(struct bstNode**)a;
-    struct bstNode* nodeB = *(struct bstNode**)b;
-    return strcmp(nodeA->data.judul, nodeB->data.judul);
-}
-
-// Fungsi untuk membandingkan judul buku (Z-A)
-int compareJudulZA(const void* a, const void* b) {
-    struct bstNode* nodeA = *(struct bstNode**)a;
-    struct bstNode* nodeB = *(struct bstNode**)b;
-    return strcmp(nodeB->data.judul, nodeA->data.judul);
-}
-
-void lihatBukuUrutan(struct bstNode** nodes, int count, int sortType) {
-    if (sortType == 1) { // untuk A-Z
-        qsort(nodes, count, sizeof(struct bstNode*), compareJudulAZ);
-    } else if (sortType == 2) { // untuk Z-A
-        qsort(nodes, count, sizeof(struct bstNode*), compareJudulZA);
-    }
-    
-    int currentIndex = 0;
-    char pilihan;
-
-    while (1) {
-        tampilPerBuku(&(nodes[currentIndex]->data));
-
-        printf("Pilih aksi: (n) Buku Selanjutnya | (p) Buku Sebelumnya | (q) Kembali\n");
-        printf("Pilihan: ");
-        scanf(" %c", &pilihan);
-
-        switch (pilihan) {
-            case 'n':
-                if (currentIndex < count - 1) {
-                    currentIndex++;
-                } else {
-                    currentIndex = 0;
-                }
-                break;
-            case 'p':
-                if (currentIndex > 0) {
-                    currentIndex--;
-                } else {
-                    currentIndex = count - 1;
-                }
-                break;
-            case 'q':
-                return;
-            default:
-                printf("Pilihan tidak valid!\n");
-        }
-    }
-}
-
-void lihatSemuaBukuBST(struct bstNode* root) {
-    if (root == NULL) {
-        printf("Tidak ada data buku.\n");
-        return;
-    }
-
-    int count = countNodes(root);
-    struct bstNode** nodes = (struct bstNode**)malloc(count * sizeof(struct bstNode*));
-    int index = 0;
-    storeInorder(root, nodes, &index);
-
-    int pilihan;
-    while (1) {
-        printf("\n=== PILIHAN URUTAN TAMPILAN ===\n");
-        printf("1. Berurutan berdasarkan ID\n");
-        printf("2. Berurutan berdasarkan Alfabet\n");
-        printf("0. Kembali\n");
-        printf("Pilihan: ");
-        scanf("%d", &pilihan);
-
-        switch (pilihan) {
-            case 1:
-                lihatBukuUrutan(nodes, count, 0);
-                break;
-            case 2: {
-                int subPilihan;
-                printf("\n=== PILIHAN URUTAN ALFABET ===\n");
-                printf("1. A-Z\n");
-                printf("2. Z-A\n");
-                printf("0. Kembali\n");
-                printf("Pilihan: ");
-                scanf("%d", &subPilihan);
-
-                switch (subPilihan) {
-                    case 1:
-                        lihatBukuUrutan(nodes, count, 1);
-                        break;
-                    case 2:
-                        lihatBukuUrutan(nodes, count, 2);
-                        break;
-                    case 0:
-                        break;
-                    default:
-                        printf("Pilihan tidak valid!\n");
-                }
-                break;
-            }
-            case 0:
-                free(nodes);
-                return;
-            default:
-                printf("Pilihan tidak valid!\n");
-        }
-    }
-}
-
-void cariBukuBST(struct bstNode* root) {
-    int idCari;
-    printf("Masukkan ID Buku yang dicari: ");
-    scanf("%d", &idCari);
-    while (getchar() != '\n');
-    
-    struct bstNode* hasil = searchBST(root, idCari);
-    if (hasil != NULL) {
-        printf("\n=== BUKU DITEMUKAN ===\n");
-        tampilPerBuku(&hasil->data);
-    } else {
-        printf("Buku dengan ID %d tidak ditemukan.\n", idCari);
-    }
-}
-
-struct bstNode* tambahBukuBST(struct bstNode* root) {
-    struct buku bukuBaru;
-    printf("\n=== TAMBAH BUKU ===\n");
-    printf("Masukkan ID Buku: ");
-    scanf("%d", &bukuBaru.idBuku);
-    while (getchar() != '\n');
-    
-    printf("Masukkan Judul: ");
-    fgets(bukuBaru.judul, sizeof(bukuBaru.judul), stdin);
-    bukuBaru.judul[strcspn(bukuBaru.judul, "\n")] = 0;
-    
-    printf("Masukkan Pengarang: ");
-    fgets(bukuBaru.pengarang, sizeof(bukuBaru.pengarang), stdin);
-    bukuBaru.pengarang[strcspn(bukuBaru.pengarang, "\n")] = 0;
-    
-    printf("Masukkan Tahun: ");
-    fgets(bukuBaru.tahun, sizeof(bukuBaru.tahun), stdin);
-    bukuBaru.tahun[strcspn(bukuBaru.tahun, "\n")] = 0;
-    
-    bukuBaru.status = 1; // Buku baru selalu tersedia
-    
-    root = insertBST(root, bukuBaru);
-    printf("Buku berhasil ditambahkan!\n");
-    return root;
-}
-
-struct bstNode* hapusBukuBST(struct bstNode* root) {
-    int idHapus;
-    printf("Masukkan ID Buku yang akan dihapus: ");
-    scanf("%d", &idHapus);
-    while (getchar() != '\n');
-    
-    struct bstNode* cek = searchBST(root, idHapus);
-    if (cek == NULL) {
-        printf("Buku dengan ID %d tidak ditemukan.\n", idHapus);
-    } else if (cek->data.status == 0) {
-        printf("Buku sedang dipinjam, tidak dapat dihapus.\n");
-    } else {
-        root = deleteBST(root, idHapus);
-        printf("Buku berhasil dihapus!\n");
-    }
-    return root;
-}
-
-void tampilkanMenuBST() {
-    printf("\n=== MENU BST ===\n");
-    printf("1. Lihat Semua Buku (Inorder)\n");
-    printf("2. Cari Buku\n");
-    printf("3. Tambah Buku\n");
-    printf("4. Hapus Buku\n");
-    printf("0. Home\n");
-    printf("Pilihan: ");
-}
-
-void bstHome(int idUser, char username[]) {
-    struct bstNode* root = NULL;
-    int pilihan;
-    
-    // Baca data buku ke BST
-    root = bacaBukuBST();
-
-    while (1) {
-        tampilkanMenuBST();
-        
-        if (scanf("%d", &pilihan) != 1) {
-            while (getchar() != '\n');
-            printf("Input tidak valid!\n");
-            continue;
-        }
-        while (getchar() != '\n');
-
-        switch (pilihan) {
-            case 1:
-                lihatSemuaBukuBST(root);
-                break;
-            case 2:
-                cariBukuBST(root);
-                break;
-            case 3:
-                root = tambahBukuBST(root);
-                break;
-            case 4:
-                root = hapusBukuBST(root);
-                break;
-            case 0:
-                freeBST(root);
-                return;
-            default:
-                printf("Pilihan tidak valid!\n");
-        }
-    }
-}
-
-// Fungsi untuk membebaskan memori BST
-void freeBST(struct bstNode* root) {
-    if (root != NULL) {
-        freeBST(root->left);
-        freeBST(root->right);
-        free(root);
-    }
-}
-
-// Fungsi untuk membaca data buku ke BST
-struct bstNode* bacaBukuBST() {
-    FILE *file = openFile("databuku.txt", "r");
-    if (file == NULL)
-        return NULL;
-
-    struct bstNode* root = NULL;
-    struct buku tempBuku;
-
-    while (fscanf(file, "%d#%99[^#]#%99[^#]#%9[^#]#%d\n",
-                &tempBuku.idBuku, tempBuku.judul, tempBuku.pengarang,
-                tempBuku.tahun, &tempBuku.status) == 5) {
-        root = insertBST(root, tempBuku);
-    }
-
-    fclose(file);
-    return root;
-}
-
 // ================= Linear ==============================
 
 FILE *openFile(const char *filename, const char *mode)
@@ -1432,8 +1018,7 @@ void hapusByJudul(struct queue *queue)
         remove("databuku.txt");
         rename("temp.txt", "databuku.txt");
 
-        // Update queue by re-reading from file (to ensure consistency)
-        // First, free all nodes in the current queue
+        // Update queue setelah menghapus buku
         freeQueue(queue);
         initQueue(queue);
         bacaBuku(queue);
@@ -1473,117 +1058,6 @@ void editBuku(struct queue *queue, int *jumlahBuku)
         default:
             printf("Pilihan tidak valid! Masukkan angka 1-3.\n");
             break;
-        }
-    }
-}
-
-// ======== Home Function  =============
-
-void linearHome(int idUser, char username[]);
-
-void firstHome(int idUser, char username[])
-{
-    int pilihan;
-    do {
-        printf("\n=== SELAMAT DATANG DI PERPUSTAKAAN ===\n");
-        printf("Pilih Algoritma yang di inginkan:\n");
-        printf("1. Linear\n");
-        printf("2. BST\n");
-        printf("3. Heap\n");
-        printf("4. Log out\n");
-        printf("======================================\n");
-        printf("Pilihan: ");
-        
-        if (scanf("%d", &pilihan) != 1) {
-            while (getchar() != '\n'); // Clear input buffer
-            printf("Input tidak valid! Masukkan angka 1-4.\n");
-            continue;
-        }
-        while (getchar() != '\n'); // Clear any remaining input
-        
-        switch (pilihan)
-        {
-        case 1:
-            linearHome(idUser, username);
-            break;
-        case 2:
-            bstHome(idUser, username);
-            break;
-        case 3:
-            menuHeap(idUser, username);
-            break;
-        case 4:
-            printf("Logging out...\n");
-            return;
-        default:
-            printf("Pilihan tidak valid! Masukkan angka 1-4.\n");
-        }
-    } while (pilihan != 4);
-}
-
-void linearHome(int idUser, char username[])
-{
-    int pilihan;
-    struct queue queue;
-    int jumlahBuku;
-
-    initQueue(&queue);
-    jumlahBuku = bacaBuku(&queue);
-
-    while (1)
-    {
-        printf("\n=== MENU UTAMA ===\n");
-        printf("1. Lihat Semua Buku\n");
-        printf("2. Lihat Buku yang Dipinjam\n");
-        printf("3. Cari Buku\n");
-        printf("4. Pinjam Buku\n");
-        printf("5. Kembalikan Buku\n");
-        printf("6. Lihat Riwayat Peminjaman\n");
-        printf("7. Reservasi Buku\n");
-        printf("8. Wishlist\n");
-        printf("9. Edit List Buku\n");
-        printf("0. Home\n");
-        printf("Pilihan: ");
-        scanf("%d", &pilihan);
-
-        switch (pilihan)
-        {
-        case 1:
-            lihatBuku(idUser, &queue, username);
-            break;
-        case 2:
-            lihatBukuDiambil(idUser, &queue, username);
-            break;
-        case 3:
-            cariBuku(idUser, &queue, username);
-            break;
-        case 4:
-            pinjamBuku(idUser, &queue, username);
-            break;
-        case 5:
-            kembalikanBuku(idUser, &queue, username);
-            // Reload books after return
-            freeQueue(&queue);
-            initQueue(&queue);
-            jumlahBuku = bacaBuku(&queue);
-            break;
-        case 6:
-            lihatHistory(idUser, username);
-            break;
-        case 7:
-            reservasiBuku(idUser, &queue, username);
-            break;
-        case 8:
-            wishlist();
-            break;
-        case 9:
-            editBuku(&queue, &jumlahBuku);
-            break;
-        case 0:
-            freeQueue(&queue);
-            return;
-        default:
-            printf("Pilihan tidak valid!\n");
         }
     }
 }
@@ -1640,6 +1114,418 @@ struct akun login()
 
     printf("\nLogin berhasil!\nSelamat datang, %s\n", user.username);
     return user;
+}
+
+//=========== BST ==============================
+
+// Fungsi untuk mendapatkan tinggi node
+int height(struct bstNode *N) {
+    if (N == NULL)
+        return 0;
+    return N->height;
+}
+
+// Fungsi untuk mendapatkan nilai maksimum dari dua integer
+int max(int a, int b) {
+    return (a > b) ? a : b;
+}
+
+// Fungsi untuk membuat node baru
+struct bstNode* createNode(struct buku data) {
+    struct bstNode* node = (struct bstNode*)malloc(sizeof(struct bstNode));
+    node->data = data;
+    node->left = NULL;
+    node->right = NULL;
+    node->height = 1;  // Node baru memiliki tinggi 1
+    return node;
+}
+
+// Fungsi untuk memutar ke kanan
+struct bstNode *rightRotate(struct bstNode *y) {
+    struct bstNode *x = y->left;
+    struct bstNode *T2 = x->right;
+
+    x->right = y;
+    y->left = T2;
+
+    // Update tinggi
+    y->height = max(height(y->left), height(y->right)) + 1;
+    x->height = max(height(x->left), height(x->right)) + 1;
+
+    return x;
+}
+
+// Fungsi untuk memutar ke kiri
+struct bstNode *leftRotate(struct bstNode *x) {
+    struct bstNode *y = x->right;
+    struct bstNode *T2 = y->left;
+
+    y->left = x;
+    x->right = T2;
+
+    // Update tinggi
+    x->height = max(height(x->left), height(x->right)) + 1;
+    y->height = max(height(y->left), height(y->right)) + 1;
+
+    return y;
+}
+
+// Mendapatkan balance factor dari node N
+int getBalance(struct bstNode *N) {
+    if (N == NULL)
+        return 0;
+    return height(N->left) - height(N->right);
+}
+
+// Fungsi untuk mencari node dalam BST
+struct bstNode* searchBST(struct bstNode* root, int idBuku) {
+    if (root == NULL || root->data.idBuku == idBuku)
+        return root;
+    
+    if (idBuku < root->data.idBuku)
+        return searchBST(root->left, idBuku);
+    
+    return searchBST(root->right, idBuku);
+}
+
+// Fungsi untuk memasukkan node baru ke BST
+struct bstNode* insertBST(struct bstNode* root, struct buku data) {
+    // 1. BST insert normal
+    if (root == NULL)
+        return createNode(data);
+
+    if (data.idBuku < root->data.idBuku)
+        root->left = insertBST(root->left, data);
+    else if (data.idBuku > root->data.idBuku)
+        root->right = insertBST(root->right, data);
+    else // Tidak boleh node duplikat
+        return root;
+
+    // 2. Update tinggi node
+    root->height = 1 + max(height(root->left), height(root->right));
+
+    // 3. Cek seimbang dengan balance factor
+    int balance = getBalance(root);
+
+    // Kasus Left Left
+    if (balance > 1 && data.idBuku < root->left->data.idBuku)
+        return rightRotate(root);
+
+    // Kasus Right Right
+    if (balance < -1 && data.idBuku > root->right->data.idBuku)
+        return leftRotate(root);
+
+    // Kasus Left Right
+    if (balance > 1 && data.idBuku > root->left->data.idBuku) {
+        root->left = leftRotate(root->left);
+        return rightRotate(root);
+    }
+
+    // Kasus Right Left
+    if (balance < -1 && data.idBuku < root->right->data.idBuku) {
+        root->right = rightRotate(root->right);
+        return leftRotate(root);
+    }
+
+    return root;
+}
+
+// Fungsi untuk menemukan node dengan nilai minimum
+struct bstNode* minValueNode(struct bstNode* node) {
+    struct bstNode* current = node;
+    while (current && current->left != NULL)
+        current = current->left;
+    return current;
+}
+
+// Fungsi untuk menghapus node dari BST
+struct bstNode* deleteBST(struct bstNode* root, int idBuku) {
+    if (root == NULL)
+        return root;
+
+    if (idBuku < root->data.idBuku)
+        root->left = deleteBST(root->left, idBuku);
+    else if (idBuku > root->data.idBuku)
+        root->right = deleteBST(root->right, idBuku);
+    else {
+        if (root->left == NULL) {
+            struct bstNode* temp = root->right;
+            free(root);
+            return temp;
+        }
+        else if (root->right == NULL) {
+            struct bstNode* temp = root->left;
+            free(root);
+            return temp;
+        }
+
+        struct bstNode* temp = minValueNode(root->right);
+        root->data = temp->data;
+        root->right = deleteBST(root->right, temp->data.idBuku);
+    }
+    return root;
+}
+
+// Fungsi untuk menghitung jumlah node dalam BST
+int countNodes(struct bstNode* root) {
+    if (root == NULL) return 0;
+    return 1 + countNodes(root->left) + countNodes(root->right);
+}
+
+// Fungsi untuk menyimpan node BST ke array secara inorder
+void storeInorder(struct bstNode* root, struct bstNode** arr, int* index) {
+    if (root == NULL) return;
+    
+    storeInorder(root->left, arr, index);
+    arr[*index] = root;
+    (*index)++;
+    storeInorder(root->right, arr, index);
+}
+
+// Fungsi untuk membandingkan judul buku (A-Z)
+int compareJudulAZ(const void* a, const void* b) {
+    struct bstNode* nodeA = *(struct bstNode**)a;
+    struct bstNode* nodeB = *(struct bstNode**)b;
+    return strcmp(nodeA->data.judul, nodeB->data.judul);
+}
+
+// Fungsi untuk membandingkan judul buku (Z-A)
+int compareJudulZA(const void* a, const void* b) {
+    struct bstNode* nodeA = *(struct bstNode**)a;
+    struct bstNode* nodeB = *(struct bstNode**)b;
+    return strcmp(nodeB->data.judul, nodeA->data.judul);
+}
+
+void lihatBukuUrutan(struct bstNode** nodes, int count, int sortType) {
+    if (sortType == 1) { // untuk A-Z
+        qsort(nodes, count, sizeof(struct bstNode*), compareJudulAZ);
+    } else if (sortType == 2) { // untuk Z-A
+        qsort(nodes, count, sizeof(struct bstNode*), compareJudulZA);
+    }
+    
+    int currentIndex = 0;
+    char pilihan;
+
+    while (1) {
+        tampilPerBuku(&(nodes[currentIndex]->data));
+
+        printf("Pilih aksi: (n) Buku Selanjutnya | (p) Buku Sebelumnya | (q) Kembali\n");
+        printf("Pilihan: ");
+        scanf(" %c", &pilihan);
+
+        switch (pilihan) {
+            case 'n':
+                if (currentIndex < count - 1) {
+                    currentIndex++;
+                } else {
+                    currentIndex = 0;
+                }
+                break;
+            case 'p':
+                if (currentIndex > 0) {
+                    currentIndex--;
+                } else {
+                    currentIndex = count - 1;
+                }
+                break;
+            case 'q':
+                return;
+            default:
+                printf("Pilihan tidak valid!\n");
+        }
+    }
+}
+
+void lihatSemuaBukuBST(struct bstNode* root) {
+    if (root == NULL) {
+        printf("Tidak ada data buku.\n");
+        return;
+    }
+
+    int count = countNodes(root);
+    struct bstNode** nodes = (struct bstNode**)malloc(count * sizeof(struct bstNode*));
+    int index = 0;
+    storeInorder(root, nodes, &index);
+
+    int pilihan;
+    while (1) {
+        printf("\n=== PILIHAN URUTAN TAMPILAN ===\n");
+        printf("1. Berurutan berdasarkan ID\n");
+        printf("2. Berurutan berdasarkan Alfabet\n");
+        printf("0. Kembali\n");
+        printf("Pilihan: ");
+        scanf("%d", &pilihan);
+
+        switch (pilihan) {
+            case 1:
+                lihatBukuUrutan(nodes, count, 0);
+                break;
+            case 2: {
+                int subPilihan;
+                printf("\n=== PILIHAN URUTAN ALFABET ===\n");
+                printf("1. A-Z\n");
+                printf("2. Z-A\n");
+                printf("0. Kembali\n");
+                printf("Pilihan: ");
+                scanf("%d", &subPilihan);
+
+                switch (subPilihan) {
+                    case 1:
+                        lihatBukuUrutan(nodes, count, 1);
+                        break;
+                    case 2:
+                        lihatBukuUrutan(nodes, count, 2);
+                        break;
+                    case 0:
+                        break;
+                    default:
+                        printf("Pilihan tidak valid!\n");
+                }
+                break;
+            }
+            case 0:
+                free(nodes);
+                return;
+            default:
+                printf("Pilihan tidak valid!\n");
+        }
+    }
+}
+
+void cariBukuBST(struct bstNode* root) {
+    int idCari;
+    printf("Masukkan ID Buku yang dicari: ");
+    scanf("%d", &idCari);
+    while (getchar() != '\n');
+    
+    struct bstNode* hasil = searchBST(root, idCari);
+    if (hasil != NULL) {
+        printf("\n=== BUKU DITEMUKAN ===\n");
+        tampilPerBuku(&hasil->data);
+    } else {
+        printf("Buku dengan ID %d tidak ditemukan.\n", idCari);
+    }
+}
+
+struct bstNode* tambahBukuBST(struct bstNode* root) {
+    struct buku bukuBaru;
+    printf("\n=== TAMBAH BUKU ===\n");
+    printf("Masukkan ID Buku: ");
+    scanf("%d", &bukuBaru.idBuku);
+    while (getchar() != '\n');
+    
+    printf("Masukkan Judul: ");
+    fgets(bukuBaru.judul, sizeof(bukuBaru.judul), stdin);
+    bukuBaru.judul[strcspn(bukuBaru.judul, "\n")] = 0;
+    
+    printf("Masukkan Pengarang: ");
+    fgets(bukuBaru.pengarang, sizeof(bukuBaru.pengarang), stdin);
+    bukuBaru.pengarang[strcspn(bukuBaru.pengarang, "\n")] = 0;
+    
+    printf("Masukkan Tahun: ");
+    fgets(bukuBaru.tahun, sizeof(bukuBaru.tahun), stdin);
+    bukuBaru.tahun[strcspn(bukuBaru.tahun, "\n")] = 0;
+    
+    bukuBaru.status = 1; // Buku baru selalu tersedia
+    
+    root = insertBST(root, bukuBaru);
+    printf("Buku berhasil ditambahkan!\n");
+    return root;
+}
+
+struct bstNode* hapusBukuBST(struct bstNode* root) {
+    int idHapus;
+    printf("Masukkan ID Buku yang akan dihapus: ");
+    scanf("%d", &idHapus);
+    while (getchar() != '\n');
+    
+    struct bstNode* cek = searchBST(root, idHapus);
+    if (cek == NULL) {
+        printf("Buku dengan ID %d tidak ditemukan.\n", idHapus);
+    } else if (cek->data.status == 0) {
+        printf("Buku sedang dipinjam, tidak dapat dihapus.\n");
+    } else {
+        root = deleteBST(root, idHapus);
+        printf("Buku berhasil dihapus!\n");
+    }
+    return root;
+}
+
+void tampilkanMenuBST() {
+    printf("\n=== MENU BST ===\n");
+    printf("1. Lihat Semua Buku (Inorder)\n");
+    printf("2. Cari Buku\n");
+    printf("3. Tambah Buku\n");
+    printf("4. Hapus Buku\n");
+    printf("0. Home\n");
+    printf("Pilihan: ");
+}
+
+void bstHome(int idUser, char username[]) {
+    struct bstNode* root = NULL;
+    int pilihan;
+    
+    // Baca data buku ke BST
+    root = bacaBukuBST();
+
+    while (1) {
+        tampilkanMenuBST();
+        
+        if (scanf("%d", &pilihan) != 1) {
+            while (getchar() != '\n');
+            printf("Input tidak valid!\n");
+            continue;
+        }
+        while (getchar() != '\n');
+
+        switch (pilihan) {
+            case 1:
+                lihatSemuaBukuBST(root);
+                break;
+            case 2:
+                cariBukuBST(root);
+                break;
+            case 3:
+                root = tambahBukuBST(root);
+                break;
+            case 4:
+                root = hapusBukuBST(root);
+                break;
+            case 0:
+                freeBST(root);
+                return;
+            default:
+                printf("Pilihan tidak valid!\n");
+        }
+    }
+}
+
+// Fungsi untuk membebaskan memori BST
+void freeBST(struct bstNode* root) {
+    if (root != NULL) {
+        freeBST(root->left);
+        freeBST(root->right);
+        free(root);
+    }
+}
+
+// Fungsi untuk membaca data buku ke BST
+struct bstNode* bacaBukuBST() {
+    FILE *file = openFile("databuku.txt", "r");
+    if (file == NULL)
+        return NULL;
+
+    struct bstNode* root = NULL;
+    struct buku tempBuku;
+
+    while (fscanf(file, "%d#%99[^#]#%99[^#]#%9[^#]#%d\n",
+                &tempBuku.idBuku, tempBuku.judul, tempBuku.pengarang,
+                tempBuku.tahun, &tempBuku.status) == 5) {
+        root = insertBST(root, tempBuku);
+    }
+
+    fclose(file);
+    return root;
 }
 
 // ======== Heap Function ========
@@ -2088,6 +1974,117 @@ void tampilanMenuHeap() {
     printf("4. Extract Buku\n");
     printf("0. Kembali ke Home\n");
     printf("Pilihan: ");
+}
+
+// ======== Home Function  =============
+
+void linearHome(int idUser, char username[]);
+
+void firstHome(int idUser, char username[])
+{
+    int pilihan;
+    do {
+        printf("\n=== SELAMAT DATANG DI PERPUSTAKAAN ===\n");
+        printf("Pilih Algoritma yang di inginkan:\n");
+        printf("1. Linear\n");
+        printf("2. BST\n");
+        printf("3. Heap\n");
+        printf("4. Log out\n");
+        printf("======================================\n");
+        printf("Pilihan: ");
+        
+        if (scanf("%d", &pilihan) != 1) {
+            while (getchar() != '\n'); // Clear input buffer
+            printf("Input tidak valid! Masukkan angka 1-4.\n");
+            continue;
+        }
+        while (getchar() != '\n'); // Clear any remaining input
+        
+        switch (pilihan)
+        {
+        case 1:
+            linearHome(idUser, username);
+            break;
+        case 2:
+            bstHome(idUser, username);
+            break;
+        case 3:
+            menuHeap(idUser, username);
+            break;
+        case 4:
+            printf("Logging out...\n");
+            return;
+        default:
+            printf("Pilihan tidak valid! Masukkan angka 1-4.\n");
+        }
+    } while (pilihan != 4);
+}
+
+void linearHome(int idUser, char username[])
+{
+    int pilihan;
+    struct queue queue;
+    int jumlahBuku;
+
+    initQueue(&queue);
+    jumlahBuku = bacaBuku(&queue);
+
+    while (1)
+    {
+        printf("\n=== MENU UTAMA ===\n");
+        printf("1. Lihat Semua Buku\n");
+        printf("2. Lihat Buku yang Dipinjam\n");
+        printf("3. Cari Buku\n");
+        printf("4. Pinjam Buku\n");
+        printf("5. Kembalikan Buku\n");
+        printf("6. Lihat Riwayat Peminjaman\n");
+        printf("7. Reservasi Buku\n");
+        printf("8. Wishlist\n");
+        printf("9. Edit List Buku\n");
+        printf("0. Home\n");
+        printf("Pilihan: ");
+        scanf("%d", &pilihan);
+
+        switch (pilihan)
+        {
+        case 1:
+            lihatBuku(idUser, &queue, username);
+            break;
+        case 2:
+            lihatBukuDiambil(idUser, &queue, username);
+            break;
+        case 3:
+            cariBuku(idUser, &queue, username);
+            break;
+        case 4:
+            pinjamBuku(idUser, &queue, username);
+            break;
+        case 5:
+            kembalikanBuku(idUser, &queue, username);
+            // Reload books after return
+            freeQueue(&queue);
+            initQueue(&queue);
+            jumlahBuku = bacaBuku(&queue);
+            break;
+        case 6:
+            lihatHistory(idUser, username);
+            break;
+        case 7:
+            reservasiBuku(idUser, &queue, username);
+            break;
+        case 8:
+            wishlist();
+            break;
+        case 9:
+            editBuku(&queue, &jumlahBuku);
+            break;
+        case 0:
+            freeQueue(&queue);
+            return;
+        default:
+            printf("Pilihan tidak valid!\n");
+        }
+    }
 }
 
 //======== Main Function ========
